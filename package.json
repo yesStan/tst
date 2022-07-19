@@ -1,0 +1,33 @@
+{
+  "name": "lmbd_task",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "commander": "^9.3.0",
+    "dayjs": "^1.11.3",
+    "express": "^4.18.1",
+    "inquirer": "^9.0.0",
+    "node": "^18.4.0",
+    "node-telegram-bot-api": "^0.58.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yesStan/lambda_task.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yesStan/lambda_task/issues"
+  },
+  "homepage": "https://github.com/yesStan/lambda_task#readme",
+  "keywords": [],
+  "description": ""
+}
