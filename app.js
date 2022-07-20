@@ -7,6 +7,21 @@ const ru = require('dayjs/locale/ru');
 const { Command } = require('commander');
 const axios = require('axios').default;
 
+const express = require('express')
+const app = express()
+// const PORT = process.envPORT || 5000
+
+app.set('port', (process.env.PORT || 6000));
+
+//For avoidong Heroku $PORT error
+app.get('/', function(request, response) {
+    let result = 'App is running'
+    response.send(result);
+}).listen(app.get('port'), function() {
+    console.log('App is running, server is listening on port ', app.get('port'));
+});
+
+
 const token = '5553083920:AAEf8j_0bnTGgh0M_IDVjQzPzzWFXpFxFfA'
 const API_KEY = '4468e661cae3911dc87cc649a402ebf1'
 
