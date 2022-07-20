@@ -10,9 +10,9 @@ const axios = require('axios').default;
 const token = '5553083920:AAEf8j_0bnTGgh0M_IDVjQzPzzWFXpFxFfA'
 const API_KEY = '4468e661cae3911dc87cc649a402ebf1'
 
-const PORT = process.env.PORT || 5000;
+// const PORT = process.env.PORT || 5000;
 
-// http.listen(5000, function(){
+// listen(5000, function(){
 //     console.log('listening on *:5000');
 //   });
 
@@ -35,7 +35,7 @@ bot.on('message', async (msg) => {
         bot.sendMessage(msg.chat.id, "choose from the menu", opts);
     });
 
-    console.log(text);
+    // console.log(text);
 
     // const choose = ((city) => {
     //     const opts = {
