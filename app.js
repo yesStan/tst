@@ -41,7 +41,7 @@ bot.on('message', async (msg) => {
 
     bot.onText(/^\/start$/, function (msg) {
         let opts = {
-            reply_to_message_id: msg.message_id,
+            // reply_to_message_id: msg.message_id,
             reply_markup: {
                 resize_keyboard: true,
                 keyboard: [['Kiev'], ['Dnipro']]
