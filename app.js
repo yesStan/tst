@@ -6,14 +6,19 @@ const TelegramBot = require('node-telegram-bot-api');
 const ru = require('dayjs/locale/ru');
 const { Command } = require('commander');
 const axios = require('axios').default;
-
 const express = require('express')
 const app = express()
-// const PORT = process.envPORT || 5000
 
-app.set('port', (process.env.PORT || 6000));
+const token = '5553083920:AAEf8j_0bnTGgh0M_IDVjQzPzzWFXpFxFfA'
+const API_KEY = '4468e661cae3911dc87cc649a402ebf1'
+const bot = new TelegramBot(token, { polling: true });
 
-//For avoidong Heroku $PORT error
+// const token = process.env.API_KEY;
+// const chatId = process.env.CHAT_ID;
+
+app.set('port', (process.env.PORT || 6003));
+
+//For avoiding Heroku $PORT error
 app.get('/', function(request, response) {
     let result = 'App is running'
     response.send(result);
@@ -22,35 +27,21 @@ app.get('/', function(request, response) {
 });
 
 
-const token = '5553083920:AAEf8j_0bnTGgh0M_IDVjQzPzzWFXpFxFfA'
-const API_KEY = '4468e661cae3911dc87cc649a402ebf1'
-
-const PORT = process.env.PORT || 5000;
-
-// listen(5000, function(){
-//     console.log('listening on *:5000');
-//   });
-
-// const token = process.env.API_KEY;
-// const chatId = process.env.CHAT_ID;
-const bot = new TelegramBot(token, { polling: true });
-
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    bot.onText(/^\/start$/, function (msg) {
-        let opts = {
-            // reply_to_message_id: msg.message_id,
-            reply_markup: {
-                resize_keyboard: true,
-                keyboard: [['Kiev'], ['Dnipro']]
-            }
-        };
+    const opts = {
+        // reply_to_message_id: msg.message_id,
+        reply_markup: {
+            resize_keyboard: true,
+            keyboard: [['Kiev'], ['Dnipro']]
+        }
+    };
+    
+    if (msg.text === '/start') {
         bot.sendMessage(msg.chat.id, "choose from the menu", opts);
-    });
-
-    // console.log(text);
+    } 
 
     // const choose = ((city) => {
     //     const opts = {
@@ -67,20 +58,20 @@ bot.on('message', async (msg) => {
     if (text === 'Kiev') {
         const opts = {
             reply_markup: {
-                keyboard: [['3h'], ['6h']]
+                keyboard: [['Kiev 3 hours range'], ['Kiev 6 hours range']]
             }
         };
         bot.sendMessage(msg.chat.id, "alright choose time frame that u wanna display", opts)
     } else if (text === 'Dnipro') {
         const opts = {
             reply_markup: {
-                keyboard: [['3h'], ['6h']]
+                keyboard: [['Dnipro 3 hours range'], ['Dnipro 6 hours range']]
             }
         };
         bot.sendMessage(msg.chat.id, "alright choose time frame that u wanna display", opts)
     } 
 
-    if (msg.text === '3h') {
+    if (msg.text === 'Kiev 3 hours range') {
         // bot.sendMessage(chatId, `Погода в: ${msg.text}`);
         try {
             const { data } = await axios.get(`https://api.openweathermap.org/data/2.5/forecast?lat=50.4501&lon=30.5234&lang=ru&appid=4468e661cae3911dc87cc649a402ebf1&units=metric`);
