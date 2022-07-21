@@ -105,16 +105,10 @@ bot.on('message', async (msg) => {
             const preparedData = list.reduce((acc, item) => {
                 const key = item.dt_txt.split(' ')[0];
                 const time = dayjs.unix(item.dt).format('HH:mm')
-                const feelsLike = item.main.feels_like
-                const temp = item.main.temp
+                const feelsLike = item.main.feels_like.toFixed();
+                const temp = item.main.temp.toFixed();
                 const weather = item.weather[0].description;
 
-                const degreeSymbol = (value) => {
-                    return value >= 0 ? `+${value} C°`
-                        : value < 0
-                            ? `-${value} C°`
-                            : `${value} C°`
-                }
                 return {
                     ...acc,
                     [key]: [
@@ -135,4 +129,32 @@ bot.on('message', async (msg) => {
             console.log(e);
         }
     };
+    if (msg.text === 'Dnipro 3 hours range') {
+        const { data } = await axios.get(`https://api.openweathermap.org/data/2.5/forecast?lat=48.46471&lon=35.0462&lang=ru&appid=4468e661cae3911dc87cc649a402ebf1&units=metric`);
+        const { list } = data;
+
+        const preparedData = list.reduce((acc, item) => {
+            const key = item.dt_txt.split(' ')[0];
+            const time = dayjs.unix(item.dt).format('HH:mm')
+            const feelsLike = item.main.feels_like.toFixed();
+            const temp = item.main.temp.toFixed();
+            const weather = item.weather[0].description;
+
+            return {
+                ...acc,
+                [key]: [
+                    ...acc?.[key] || [],
+                    `${time}, ${degreeSymbol(temp)} ощущается как:${degreeSymbol(feelsLike)}, ${weather} `
+                ]
+            }
+        }, {})
+
+        const outputData = Object.entries(preparedData).map(([key, value]) => {
+            const title = dayjs(key).format('dddd, D MMMM')
+            return `${title}: \n\t${value.join('\n\t')}`
+        }).join('\n\n')
+
+        bot.sendMessage(chatId, `${outputData}`);
+    }
+
 });
