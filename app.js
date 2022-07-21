@@ -22,10 +22,10 @@ const bot = new TelegramBot(token, { polling: true });
 app.set('port', (process.env.PORT || 6000));
 
 //For avoiding Heroku $PORT error
-app.get('/', function(request, response) {
+app.get('/', function (request, response) {
     let result = 'App is running'
     response.send(result);
-}).listen(app.get('port'), function() {
+}).listen(app.get('port'), function () {
     console.log('App is running, server is listening on port ', app.get('port'));
 });
 
@@ -41,10 +41,10 @@ bot.on('message', async (msg) => {
             keyboard: [['Kiev'], ['Dnipro']]
         }
     };
-    
+
     if (msg.text === '/start') {
         bot.sendMessage(msg.chat.id, "choose from the menu", opts);
-    } 
+    }
 
     // const choose = ((city) => {
     //     const opts = {
@@ -72,7 +72,7 @@ bot.on('message', async (msg) => {
             }
         };
         bot.sendMessage(msg.chat.id, "alright choose time frame that u wanna display", opts)
-    } 
+    }
 
     if (msg.text === 'Kiev 3 hours range') {
         // bot.sendMessage(chatId, `Погода в: ${msg.text}`);
@@ -102,6 +102,13 @@ bot.on('message', async (msg) => {
             //     dt_txt: '2022-07-17 21:00:00'
             //   },
 
+            const degreeSymbol = (value) => {
+                return value >= 0 ? `+${value} C°`
+                    : value < 0
+                        ? `-${value} C°`
+                        : `${value} C°`
+            }
+
             const preparedData = list.reduce((acc, item) => {
                 const key = item.dt_txt.split(' ')[0];
                 const time = dayjs.unix(item.dt).format('HH:mm')
@@ -124,37 +131,36 @@ bot.on('message', async (msg) => {
             }).join('\n\n')
 
             bot.sendMessage(chatId, `${outputData}`);
+//Dnipro
+            if (msg.text === 'Dnipro 3 hours range') {
+                const { data } = await axios.get(`https://api.openweathermap.org/data/2.5/forecast?lat=48.46471&lon=35.0462&lang=ru&appid=4468e661cae3911dc87cc649a402ebf1&units=metric`);
+                const { list } = data;
 
+                const preparedData = list.reduce((acc, item) => {
+                    const key = item.dt_txt.split(' ')[0];
+                    const time = dayjs.unix(item.dt).format('HH:mm')
+                    const feelsLike = item.main.feels_like.toFixed();
+                    const temp = item.main.temp.toFixed();
+                    const weather = item.weather[0].description;
+
+                    return {
+                        ...acc,
+                        [key]: [
+                            ...acc?.[key] || [],
+                            `${time}, ${degreeSymbol(temp)} ощущается как:${degreeSymbol(feelsLike)}, ${weather} `
+                        ]
+                    }
+                }, {})
+
+                const outputData = Object.entries(preparedData).map(([key, value]) => {
+                    const title = dayjs(key).format('dddd, D MMMM')
+                    return `${title}: \n\t${value.join('\n\t')}`
+                }).join('\n\n')
+
+                bot.sendMessage(chatId, `${outputData}`);
+            }
         } catch (e) {
             console.log(e);
         }
     };
-    if (msg.text === 'Dnipro 3 hours range') {
-        const { data } = await axios.get(`https://api.openweathermap.org/data/2.5/forecast?lat=48.46471&lon=35.0462&lang=ru&appid=4468e661cae3911dc87cc649a402ebf1&units=metric`);
-        const { list } = data;
-
-        const preparedData = list.reduce((acc, item) => {
-            const key = item.dt_txt.split(' ')[0];
-            const time = dayjs.unix(item.dt).format('HH:mm')
-            const feelsLike = item.main.feels_like.toFixed();
-            const temp = item.main.temp.toFixed();
-            const weather = item.weather[0].description;
-
-            return {
-                ...acc,
-                [key]: [
-                    ...acc?.[key] || [],
-                    `${time}, ${degreeSymbol(temp)} ощущается как:${degreeSymbol(feelsLike)}, ${weather} `
-                ]
-            }
-        }, {})
-
-        const outputData = Object.entries(preparedData).map(([key, value]) => {
-            const title = dayjs(key).format('dddd, D MMMM')
-            return `${title}: \n\t${value.join('\n\t')}`
-        }).join('\n\n')
-
-        bot.sendMessage(chatId, `${outputData}`);
-    }
-
 });
