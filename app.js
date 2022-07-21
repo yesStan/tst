@@ -19,7 +19,7 @@ const bot = new TelegramBot(token, { polling: true });
 // const token = process.env.API_KEY;
 // const chatId = process.env.CHAT_ID;
 
-app.set('port', (process.env.PORT || 5001));
+app.set('port', (process.env.PORT || 6000));
 
 //For avoiding Heroku $PORT error
 app.get('/', function(request, response) {
