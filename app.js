@@ -1,4 +1,7 @@
 // heroku ps:scale web=0  
+
+const { CURRENCY_ISO_MAP } = require('./currency-constants')
+
 const { get } = require('http');
 const dayjs = require('dayjs')
 
@@ -68,7 +71,7 @@ bot.on('message', async (msg) => {
                 ? `-${value} C°`
                 : `${value} C°`
     }
-    
+
     const DEFAULT_TIME_INTERVAL_LIST = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
     const PREPEARED_REQUEST_PARAMS = {
         appid: '4468e661cae3911dc87cc649a402ebf1',
@@ -119,7 +122,7 @@ bot.on('message', async (msg) => {
 
     if (msg.text === 'Kiev 3 hours range') {
         try {
-            const { data } = await getWeatherForecast();  //const { data } = await getWeatherForecast({lan: '4322', lon : '43222'});
+            const { data } = await getWeatherForecast();  //const { data } = await getWeatherForecast({lat: '4322', lon : '43222'});
             const { list } = data;
 
             const formatedData = getFormatedData(list)
@@ -147,4 +150,82 @@ bot.on('message', async (msg) => {
             console.log(e);
         }
     };
+
+    // function getExcangeRate(params = {}) {
+    //     return axios.get('https://api.monobank.ua/bank/currency')
+
+    // };
+
+    if (msg.text === 'Currency') {
+        let opts = {
+            reply_markup: {
+                keyboard: [
+                    ['USD by mono', 'EUR by privatBank'],
+                    ['Prev menu'],
+                ]
+            }
+        };
+        bot.sendMessage(msg.chat.id, 'choose currency', opts);
+    }
+
+    function getCurrencyRate() {
+        return axios.get('https://api.monobank.ua/bank/currency')
+    }
+
+    function getExchangeTemplate(list = []) {
+        const filteredList = list.filter(({ rateBuy, rateSell }) => rateBuy && rateSell) //this is how it should be
+
+        return filteredList.reduce((acc, item) => {
+
+            const key = item.date;
+            const code = item.currencyCodeA;
+            const code2 = item.currencyCodeB;
+            const rateBuy = item.rateBuy;
+            const currSell = item.rateSell;
+
+            const currentTempalte = {
+                [key]: [
+                    ...acc?.[key] || [],
+                    `${CURRENCY_ISO_MAP[code]} - ${CURRENCY_ISO_MAP[code2]} \n \u2705 покупка - ${rateBuy}, \u2705 продажа - ${currSell}`
+                ]
+            };
+
+            // const currectyRateTemplate = rateBuy && currSell
+            //     ? currentTempalte
+            //     : {};
+
+            return {
+                ...acc,
+                // ...currectyRateTemplate
+                ...currentTempalte
+            }
+        }, {})
+
+    }
+
+    function preparedCurrencyTemplate(data) {
+        return Object.entries(data).map(([key, value]) => {
+            const title = dayjs.unix(key).format('dddd, D MMMM, HH:m:ss')
+
+            return `\ud83d\udd0e последее обновление курса - ${title}\u23f0 \n \ud83d\udcb1 ${value.join('\n\t')}`
+
+        }).join('\n\n')
+    }
+
+
+    if (msg.text === 'USD by mono') {
+
+        const { data } = await getCurrencyRate();
+        // const { list } = data;
+
+        const formatedData = getExchangeTemplate(data);
+        const outputData = preparedCurrencyTemplate(formatedData)
+
+        bot.sendMessage(chatId, `${outputData}`);
+    }
+
+    if (msg.text === 'EUR by privatBank') {
+
+    }
+
 });
