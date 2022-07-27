@@ -13,7 +13,8 @@ const ru = require('dayjs/locale/ru');
 const { Command } = require('commander');
 const axios = require('axios').default;
 
-const express = require('express')
+const express = require('express');
+const { title } = require('process');
 const app = express()
 
 const token = '5553083920:AAEf8j_0bnTGgh0M_IDVjQzPzzWFXpFxFfA'
@@ -151,11 +152,6 @@ bot.on('message', async (msg) => {
         }
     };
 
-    // function getExcangeRate(params = {}) {
-    //     return axios.get('https://api.monobank.ua/bank/currency')
-
-    // };
-
     if (msg.text === 'Currency') {
         let opts = {
             reply_markup: {
@@ -168,15 +164,14 @@ bot.on('message', async (msg) => {
         bot.sendMessage(msg.chat.id, 'choose currency', opts);
     }
 
+    //MONOBANK
     function getCurrencyRate() {
         return axios.get('https://api.monobank.ua/bank/currency')
     }
 
     function getExchangeTemplate(list = []) {
-        const filteredList = list.filter(({ rateBuy, rateSell }) => rateBuy && rateSell) //this is how it should be
-
+        const filteredList = list.filter(({ rateBuy, rateSell }) => rateBuy && rateSell)    //this is how it should be
         return filteredList.reduce((acc, item) => {
-
             const key = item.date;
             const code = item.currencyCodeA;
             const code2 = item.currencyCodeB;
@@ -186,7 +181,7 @@ bot.on('message', async (msg) => {
             const currentTempalte = {
                 [key]: [
                     ...acc?.[key] || [],
-                    `${CURRENCY_ISO_MAP[code]} - ${CURRENCY_ISO_MAP[code2]} \n \u2705 покупка - ${rateBuy}, \u2705 продажа - ${currSell}`
+                    `\ud83d\udcb1 ${CURRENCY_ISO_MAP[code]} - ${CURRENCY_ISO_MAP[code2]} \n \u2705 покупка - ${rateBuy}, \u2705 продажа - ${currSell}`
                 ]
             };
 
@@ -200,23 +195,19 @@ bot.on('message', async (msg) => {
                 ...currentTempalte
             }
         }, {})
-
     }
 
     function preparedCurrencyTemplate(data) {
         return Object.entries(data).map(([key, value]) => {
             const title = dayjs.unix(key).format('dddd, D MMMM, HH:m:ss')
-
-            return `\ud83d\udd0e последее обновление курса - ${title}\u23f0 \n \ud83d\udcb1 ${value.join('\n\t')}`
-
+            console.log();
+            return `\ud83d\udd0e последее обновление курса - ${title}\u23f0 \n ${value.join('\n\t')}`
         }).join('\n\n')
     }
-
 
     if (msg.text === 'USD by mono') {
 
         const { data } = await getCurrencyRate();
-        // const { list } = data;
 
         const formatedData = getExchangeTemplate(data);
         const outputData = preparedCurrencyTemplate(formatedData)
@@ -224,8 +215,42 @@ bot.on('message', async (msg) => {
         bot.sendMessage(chatId, `${outputData}`);
     }
 
-    if (msg.text === 'EUR by privatBank') {
-
+    //PRIVATBANK
+    function getPrivatCurrencyRate() {
+        return axios.get('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11');
     }
 
+    function getExchangePrivatTemplate(list = []) {
+        return list.reduce((acc, item, index) => {
+            const curr = item.ccy;
+            const baseCurr = item.base_ccy;
+            const buyRate = item.buy;
+            const sellRate = item.sale
+
+            const currentTempalte = {
+                [index]: [`\ud83d\udcb1${curr}/${baseCurr} \n \u2705 покупка - ${buyRate}, \u2705 продажа - ${sellRate}\n`]
+            };
+
+            return {
+                ...acc,
+                ...currentTempalte
+            }
+        }, {})
+    }
+
+    function preparedCurrencyTemplatePrivat(data) {
+        return Object.entries(data).map(([key, value]) => {
+            return `${value}`
+        }).join('\n')
+    }
+    
+    if (msg.text === 'EUR by privatBank') {
+        const { data } = await getPrivatCurrencyRate();
+
+
+        const formatedData = getExchangePrivatTemplate(data);
+        const outputData = preparedCurrencyTemplatePrivat(formatedData)
+
+        bot.sendMessage(chatId, `${outputData}`);
+    }
 });
