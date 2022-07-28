@@ -206,13 +206,18 @@ bot.on('message', async (msg) => {
     }
 
     if (msg.text === 'USD by mono') {
+        try {
 
-        const { data } = await getCurrencyRate();
+            const { data } = await getCurrencyRate();
 
-        const formatedData = getExchangeTemplate(data);
-        const outputData = preparedCurrencyTemplate(formatedData)
+            const formatedData = getExchangeTemplate(data);
+            const outputData = preparedCurrencyTemplate(formatedData)
 
-        bot.sendMessage(chatId, `${outputData}`);
+            bot.sendMessage(chatId, `${outputData}`);
+
+        } catch (error) {
+            bot.sendMessage(chatId, 'only once a minute');
+        }
     }
 
     //PRIVATBANK
@@ -243,14 +248,18 @@ bot.on('message', async (msg) => {
             return `${value}`
         }).join('\n')
     }
-    
+
     if (msg.text === 'EUR by privatBank') {
-        const { data } = await getPrivatCurrencyRate();
+        try {
+            const { data } = await getPrivatCurrencyRate();
 
+            const formatedData = getExchangePrivatTemplate(data);
+            const outputData = preparedCurrencyTemplatePrivat(formatedData)
 
-        const formatedData = getExchangePrivatTemplate(data);
-        const outputData = preparedCurrencyTemplatePrivat(formatedData)
+            bot.sendMessage(chatId, `${outputData}`);
 
-        bot.sendMessage(chatId, `${outputData}`);
+        } catch (error) {
+            bot.sendMessage(chatId, 'sorry not this time');
+        }
     }
 });
